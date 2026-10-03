@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!--
+  DV ARCHITECTURE TECHNOLOGY
+  DV GenSuite — Switchable Developer Generator Toolkit (PWA)
+  Proprietary. Namespace: dv / DV — Android phone & tablet ONLY. 
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1877F2">
+<title>DV GenSuite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Condensed:wght@400;700&family=Noto+Sans:wght@400;700&family=Open+Sans:wght@400;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="./manifest.json">
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+<div id="dvTopBar">
+  <button class="dv-icon-btn" id="dvBtnLeftMenu" aria-label="Menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div id="dvTopBarTitle">DV GenSuite</div>
+  <button class="dv-icon-btn" id="dvBtnRightMenu" aria-label="Settings">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+  </button>
+</div>
+
+<div id="dvGenNavBar">
+  <button id="dvBtnHome" aria-label="Home">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+  </button>
+  <div id="dvGenNavScroll"></div>
+</div>
+
+<div id="dvContent"></div>
+
+<!-- LEFT DRAWER: INFO MENU -->
+<div class="dv-fullmodal dv-fullmodal-left" id="dvDrawerInfo">
+  <div class="dv-modal-head">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <h2>Menu</h2>
+  </div>
+  <div class="dv-modal-body" style="padding:0;">
+    <button class="dv-menu-row" data-info="about-us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>About Us</span></button>
+    <button class="dv-menu-row" data-info="about-app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg><span>About the App</span></button>
+    <button class="dv-menu-row" data-info="about-dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>About Developer</span></button>
+    <button class="dv-menu-row" data-info="warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Proprietary Software Warning</span></button>
+    <button class="dv-menu-row" data-info="how-to-use"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>How to Use</span></button>
+    <button class="dv-menu-row" data-info="contact-us"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg><span>Contact Us</span></button>
+    <button class="dv-menu-row dv-menu-exit" id="dvBtnExitLeft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>Exit Sidebar</span></button>
+  </div>
+</div>
+
+<!-- RIGHT DRAWER: SETTINGS -->
+<div class="dv-fullmodal dv-fullmodal-right" id="dvDrawerSettings">
+  <div class="dv-modal-head">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+    <h2>Settings</h2>
+  </div>
+  <div class="dv-modal-body" style="padding:0;">
+    <div class="dv-settings-block">
+      <div class="dv-settings-label">Accent Color</div>
+      <div class="dv-accent-grid" id="dvAccentGrid"></div>
+    </div>
+    <div class="dv-settings-block">
+      <div class="dv-toggle-row">
+        <span class="dv-settings-label" style="margin-bottom:0;">Dark Mode</span>
+        <button class="dv-switch" id="dvSwitchDark"></button>
+      </div>
+    </div>
+    <div class="dv-settings-block">
+      <div class="dv-label"><span class="dv-settings-label" style="margin-bottom:0;">Font Scale</span><span class="dv-val" id="dvFontScaleVal">100%</span></div>
+      <input type="range" class="dv-range" id="dvFontScaleSlider" min="100" max="150" step="5" value="100" style="margin-top:10px;">
+    </div>
+    <div class="dv-settings-block">
+      <div class="dv-settings-label">Font</div>
+      <div class="dv-font-options" id="dvFontOptions"></div>
+    </div>
+    <button class="dv-settings-action" id="dvBtnInstallApp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Install App</span>
+    </button>
+    <button class="dv-settings-action" id="dvBtnShareApp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <span>Share App</span>
+    </button>
+    <button class="dv-settings-action dv-menu-exit" id="dvBtnExitRight">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <span>Exit Sidebar</span>
+    </button>
+  </div>
+</div>
+
+<!-- INFO CONTENT MODAL (About/Warning/How-to/Contact pages) -->
+<div class="dv-fullmodal dv-fullmodal-info" id="dvModalInfo">
+  <div class="dv-modal-head">
+    <button class="dv-icon-btn" id="dvBtnCloseInfo" aria-label="Back">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    </button>
+    <h2 id="dvModalInfoTitle">Info</h2>
+  </div>
+  <div class="dv-modal-body" id="dvModalInfoBody"></div>
+</div>
+<div id="dvScrim"></div>
+<div id="dvToastWrap"></div>
+<script src="dv-app.js"></script>
+</body>
+</html>
