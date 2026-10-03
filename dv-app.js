@@ -1,5 +1,5 @@
+<script>
 (function(){
-
 "use strict";
 
 /* =========================================================
@@ -322,6 +322,7 @@ function dvRenderHome(){
   `;
   more.querySelectorAll('[data-info]').forEach(btn=> btn.addEventListener('click', ()=> dvOpenInfoModal(btn.dataset.info)));
 }
+
 /* =========================================================
    1. PASSWORD GENERATOR
    ========================================================= */
@@ -1359,7 +1360,7 @@ function dvBuildQrMatrix(text){
     col -= 2; dir = -dir;
   }
   const fmtBits = dvQrFormatBits(0).toString(2).padStart(15,'0').split('').map(Number);
-  8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8
+  [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]]
     .forEach(([r,c],idx)=> modules[r][c] = !!fmtBits[idx]);
   [[size-1,8],[size-2,8],[size-3,8],[size-4,8],[size-5,8],[size-6,8],[size-7,8],
    [8,size-8],[8,size-7],[8,size-6],[8,size-5],[8,size-4],[8,size-3],[8,size-2],[8,size-1]]
@@ -1584,6 +1585,7 @@ function dvRenderCron(main){
   document.getElementById('dvCrCopy').addEventListener('click', ()=> dvCopy(document.getElementById('dvCrOutput').value));
   document.getElementById('dvCrBuild').click();
 }
+
 /* =========================================================
    26. USER-AGENT STRING GENERATOR
    ========================================================= */
@@ -2251,38 +2253,28 @@ document.getElementById('dvFontScaleSlider').addEventListener('input', (e)=>{
 
 /* ---- Install App ---- */
 let dvDeferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
+window.addEventListener('beforeinstallprompt', (e)=>{
   e.preventDefault();
   dvDeferredInstallPrompt = e;
 });
+document.getElementById('dvBtnInstallApp').addEventListener('click', async ()=>{
+  if(dvDeferredInstallPrompt){
+    dvDeferredInstallPrompt.prompt();
+    await dvDeferredInstallPrompt.userChoice;
+    dvDeferredInstallPrompt = null;
+  } else {
+    dvToast('App is already installed or install is not available on this browser');
+  }
+});
 
 /* ---- Share App ---- */
-document.addEventListener('DOMContentLoaded', () => {
-  const installBtn = document.getElementById('dvBtnInstallApp');
-  if (installBtn) installBtn.addEventListener('click', async () => {
-    if (dvDeferredInstallPrompt) {
-      dvDeferredInstallPrompt.prompt();
-      await dvDeferredInstallPrompt.userChoice;
-      dvDeferredInstallPrompt = null;
-    } else {
-      dvToast('App is already installed or install is not available on this browser');
-    }
-  });
-
-  const shareBtn = document.getElementById('dvBtnShareApp');
-  if (shareBtn) shareBtn.addEventListener('click', async () => {
-    const shareData = {
-      title: 'DV GenSuite',
-      text: 'Check out DV GenSuite — a developer generator toolkit.',
-      url: window.location.href
-    };
-    if (navigator.share) {
-      try { await navigator.share(shareData); }
-      catch (e) { if (e.name !== 'AbortError') console.warn('Share failed:', e); }
-    } else if (typeof dvCopy === 'function') {
-      dvCopy(window.location.href);
-    }
-  });
+document.getElementById('dvBtnShareApp').addEventListener('click', async ()=>{
+  const shareData = { title:'DV GenSuite', text:'Check out DV GenSuite — a developer generator toolkit by Biblefirm.', url: window.location.href };
+  if(navigator.share){
+    try{ await navigator.share(shareData); }catch(e){ /* user cancelled share */ }
+  } else {
+    dvCopy(window.location.href);
+  }
 });
 
 /* ---- PWA ---- */
@@ -2293,7 +2285,9 @@ function dvSetupPWA(){
   }
 }
 
-/* ---- Boot ---- */
+/* =========================================================
+   DV BOOT
+   ========================================================= */
 function dvBoot(){
   try{
     dvLoadSettings();
@@ -2309,3 +2303,4 @@ document.addEventListener('DOMContentLoaded', dvBoot);
 if(document.readyState !== 'loading') dvBoot();
 
 })();
+
