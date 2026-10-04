@@ -11,11 +11,7 @@
    - Referrer-Policy is forced to "no-referrer" (both a document-level
      <meta> tag, injected once, and per-request) so the site whose
      source you're viewing never sees this app in its logs.
-   - CORS: a direct fetch is tried first (fully private, no third party
-     involved). If the target blocks cross-origin requests — which is a
-     browser-enforced rule no client script can override — this widget
-     automatically retries through a public CORS relay so the view still
-     works. That fallback path is clearly labeled in the UI, since your
+    That fallback path is clearly labeled in the UI, since my
      URL and the response do pass through a third party at that point.
 
    100% self-contained: own CSS, HTML and JS, mounted into a private
@@ -103,13 +99,8 @@ dvRoot.innerHTML = `
     border: none; background: rgba(255,255,255,.95); color: #050505;
     padding: 0 14px; font-size: 19px; font-family: Roboto, Arial, sans-serif;
   }
+
   .dv-url-input:focus{ outline: 2px solid #fff; }
-  .dv-go-btn{
-    height: 44px; padding: 0 18px; border-radius: 10px; border: none;
-    background: #050505; color: #fff; font-weight: 700; font-size: 19px;
-    flex-shrink: 0;
-  }
-  .dv-go-btn:active{ filter: brightness(1.3); }
 
   .dv-status{
     flex-shrink: 0; padding: 10px 14px; font-size: 19px; color: var(--dv-text-sec);
@@ -118,7 +109,8 @@ dvRoot.innerHTML = `
   .dv-status.dv-error{ color: var(--dv-danger); }
   .dv-status.dv-relay{ color: #B8860B; }
 
-  .dv-editor{ flex: 1; display: flex; overflow: auto; min-height: 0; background: var(--dv-code-bg); }
+  #dvEditorWrap{ flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; position: relative; width: 100%; height: 100%; }
+  .dv-editor{ flex: 1; display: flex; overflow: auto; min-height: 0; background: var(--dv-code-bg); width: 100%; height: 100%; }
   .dv-gutter{
     flex-shrink: 0; padding: 14px 10px; text-align: right;
     color: var(--dv-text-sec); font: 19px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -128,8 +120,9 @@ dvRoot.innerHTML = `
   .dv-code{
     flex: 1; margin: 0; padding: 14px; background: var(--dv-code-bg);
     font: 19px/1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    white-space: pre; color: var(--dv-code-text); min-width: 0;
+    white-space: pre; color: var(--dv-code-text); min-width: 0; overflow: visible;
   }
+  .dv-iframe{ flex: 1; width: 100%; height: 100%; border: none; background: #ffffff; }
   .dv-empty{
     flex: 1; display: flex; align-items: center; justify-content: center;
     color: var(--dv-text-sec); font-size: 19px; text-align: center; padding: 20px;
@@ -148,11 +141,17 @@ dvRoot.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <input type="text" class="dv-url-input" id="dvUrlInput" placeholder="Paste a URL, e.g. https://example.com" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false">
-      <button class="dv-go-btn" id="dvGoBtn">View</button>
+      <button class="dv-icon-btn" id="dvGoBtn" aria-label="View Code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </button>
+      <button class="dv-icon-btn" id="dvPlayBtn" aria-label="Play Live Preview">
+        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+      </button>
       <button class="dv-icon-btn" id="dvCopyBtn" aria-label="Copy source">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
     </div>
+       
     <div class="dv-status" id="dvStatus"></div>
     <div id="dvEditorWrap">
       <div class="dv-empty" id="dvEmptyState">Paste a URL above and tap View to fetch and display its source.</div>
@@ -167,11 +166,13 @@ const dvModal = dvRoot.getElementById('dvModal');
 const dvClose = dvRoot.getElementById('dvClose');
 const dvUrlInput = dvRoot.getElementById('dvUrlInput');
 const dvGoBtn = dvRoot.getElementById('dvGoBtn');
+const dvPlayBtn = dvRoot.getElementById('dvPlayBtn');
 const dvCopyBtn = dvRoot.getElementById('dvCopyBtn');
 const dvStatus = dvRoot.getElementById('dvStatus');
 const dvEditorWrap = dvRoot.getElementById('dvEditorWrap');
 
 let dvLastFetchedSource = '';
+let dvCurrentMode = 'code';
 
 /* ---------- Theme sync: light by default, follows the host app's dark-mode toggle if present ---------- */
 function dvSyncTheme(){
@@ -192,6 +193,7 @@ function dvSetStatus(msg, kind){
 
 function dvRenderSource(text){
   dvLastFetchedSource = text;
+  dvCurrentMode = 'code';
   const lines = text.split('\n');
   const gutter = lines.map((_, i)=> (i+1)).join('\n');
   dvEditorWrap.innerHTML = `
@@ -202,7 +204,15 @@ function dvRenderSource(text){
   dvEditorWrap.querySelector('.dv-code').textContent = text;
 }
 
-async function dvFetchSource(){
+function dvRenderPreview(text){
+  dvLastFetchedSource = text;
+  dvCurrentMode = 'preview';
+  dvEditorWrap.innerHTML = `<iframe class="dv-iframe" sandbox="allow-scripts allow-same-origin"></iframe>`;
+  const frame = dvEditorWrap.querySelector('.dv-iframe');
+  frame.srcdoc = text;
+}
+
+async function dvFetchSource(targetMode = 'code'){
   let url = dvUrlInput.value.trim();
   if(!url){ dvSetStatus('Enter a URL first.', 'error'); return; }
   if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
@@ -214,12 +224,11 @@ async function dvFetchSource(){
     const response = await fetch(url, { mode: 'cors', referrerPolicy: 'no-referrer' });
     const elapsed = Math.round(performance.now() - started);
     const text = await response.text();
-    dvRenderSource(text);
+    if(targetMode === 'preview'){ dvRenderPreview(text); } else { dvRenderSource(text); }
     dvSetStatus(`${response.status} ${response.statusText} · ${text.length.toLocaleString()} characters · ${elapsed}ms · direct, private request`);
     return;
   }catch(directErr){
-    // Direct request failed — almost always CORS. Retry through a public relay
-    // so the view still works, clearly labeled since a third party is now involved.
+    // Direct request failed — retry through relay
   }
 
   try{
@@ -228,8 +237,8 @@ async function dvFetchSource(){
     const response = await fetch(proxied, { referrerPolicy: 'no-referrer' });
     const elapsed = Math.round(performance.now() - started);
     const text = await response.text();
-    dvRenderSource(text);
-    dvSetStatus(`Fetched via CORS relay (allorigins.win) · ${text.length.toLocaleString()} characters · ${elapsed}ms — the target site's CORS policy blocked a direct request, so this went through a third-party relay instead.`, 'relay');
+    if(targetMode === 'preview'){ dvRenderPreview(text); } else { dvRenderSource(text); }
+    dvSetStatus(`Fetched via CORS relay (allorigins.win) · ${text.length.toLocaleString()} characters · ${elapsed}ms — target site CORS policy blocked direct request.`, 'relay');
   }catch(relayErr){
     dvSetStatus('Could not fetch this URL, even through the relay. The site may be offline, invalid, or blocking relays too.', 'error');
   }
@@ -242,6 +251,28 @@ function dvCopySource(){
   }
 }
 
+function dvOnViewClick(){
+  if(dvLastFetchedSource && dvCurrentMode !== 'code'){
+    dvRenderSource(dvLastFetchedSource);
+  } else {
+    dvFetchSource('code');
+  }
+}
+
+function dvOnPlayClick(){
+  if(dvLastFetchedSource && dvCurrentMode !== 'preview'){
+    dvRenderPreview(dvLastFetchedSource);
+  } else {
+    dvFetchSource('preview');
+  }
+}
+
+dvFab.addEventListener('click', dvOpenModal);
+dvClose.addEventListener('click', dvCloseModal);
+dvGoBtn.addEventListener('click', dvOnViewClick);
+dvPlayBtn.addEventListener('click', dvOnPlayClick);
+dvCopyBtn.addEventListener('click', dvCopySource);
+dvUrlInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') dvFetchSource(dvCurrentMode); });
 dvFab.addEventListener('click', dvOpenModal);
 dvClose.addEventListener('click', dvCloseModal);
 dvGoBtn.addEventListener('click', dvFetchSource);
